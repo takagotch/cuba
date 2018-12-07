@@ -1,7 +1,7 @@
 ### cuba
 ---
 http://cuba.is/
-
+.rb
 https://github.com/soveran/cuba
 
 ```
@@ -55,6 +55,14 @@ end
 
 Cuba.defind do
 end
+```
+
+### CUBA-Platform
+---
+.java
+https://www.cuba-platform.com/
+
+```
 ```
 
 
