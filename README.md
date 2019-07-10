@@ -4,7 +4,7 @@ http://cuba.is/
 .rb
 https://github.com/soveran/cuba
 
-```
+```sh
 gem install cuba
 ```
 
@@ -39,6 +39,39 @@ end
 # cat config.ru
 require "./hello_world"
 run Cuba
+
+
+require "cuba"
+require "cuba/safe"
+
+Cuba.use Rack::Session::Cookie, :secret => "__a_very_long_string__"
+
+Cuba.plugin Cuba::Safe
+
+Cuba.define do
+  on get do
+  
+    on root do
+      res.write "Home"
+    end
+    
+    on "about" do
+      res.write "About"
+    end
+    
+    on "styles", extension("css") do |file|
+      res.write "Filename: #{file}"
+    end
+    
+    on "post/:y/:m/:d/:slug" do |y, m, d, slug|
+      res.write "#{y}-#{m}-#{d} #{slug}"
+    end
+    
+    on "username/:username" do |username|
+      user = User.find_by_username(username)
+    end
+end
+
 
 ```
 
