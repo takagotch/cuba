@@ -73,46 +73,247 @@ Cuba.define do
 end
 
 
+Cuba.define do
+  on get do
+    on "hello" do
+      res.write "hello world"
+    end
+  end
+end
 
+Cuba.define do
+  on get do
+    on "hello" do
+      on root do
+        res.write "hello world"
+      end
+    end
+  end
+end
 
+Cuba.define do
+end
 
+module TerminalMatcher
+  def terminal(path)
+    /#{path}\/?\z/
+  end
+end
 
+Cuba.plugin TerminalMatcher
 
+Cuba.define do
+  on get do
+    on terminal("hello") do
+      res.write "hello world"
+    end
+  end
+end
 
+require "cuba/safe"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```
-
-```ruby
-require ""
-require ""
-Cuba.use Rack::Session::Cookie, :secret => ""
 Cuba.plugin Cuba::Safe
-Cuba.defind do
+
+
+Cuba.use(Rack::Session::Cookie, :secret => "__a_very_long_string__")
+
+
+require "cuba"
+require "cuba/safe"
+
+Cuba.use Rack::Sesison::Cookie, :secret => "__a_very_long_string_"
+
+Cuba.plugin Cuba::Safe
+
+Cuba.define do
+  on csrf.unsafe? do
+    csrf.reset!
+    
+    res.status = 403
+    res.write("Forbidden")
+    
+    halt(res.finish)
+  end
 end
 
-Cuba.defind do
+on env["REQUEST_METHOD"] == "GET", "api" do ... end
+
+on req.get? "api" do ... end
+
+on get, "api" do ... end
+
+
+Cuba.settings[:req] = MyRequest
+Cuba.settings[:res] = MyResponse
+
+
+class API < Cuba; end
+
+API.use SomeMiddleware
+
+API.define do
+  on param("url") do |url|
+  end
 end
 
-Cuba.defind do
+Cuba.define do
+  on "api" do
+    run API
+  end
 end
+
+class Platforms < Cuba
+  define do
+    platform = vars[:platform]
+    
+    on default do
+      res.write(platform)
+    end
+  end
+end
+
+class Platforms < Cuba
+  define do
+    platform = vars[:platform]
+    
+    on default do
+      res.write(platform)
+    end
+  end
+end
+
+
+class Cuba
+  def mount(app)
+    result = app.call(req.env)
+    halt result if result[0] != 404
+  end
+end
+
+Cuba.define do
+  on default do
+    mount A
+    mount B
+  end
+end
+
+
+require "cuba/tes"
+require "your/app"
+
+scope do
+  test "Homepage" do
+    get "/"
+    
+    assert_equal "Hello world!", last_response.body
+  end
+end
+
+
+require "cuba/capybara"
+require "your/app"
+
+scope do
+  test "Homepage" do
+    visit "/"
+    
+    assert has_content?("Hello world!")
+end
+
+
+Cuba.settings[:layout] = "guest"
+
+class Users < Cuba; end
+class Admin < Cuba; end
+
+Admin.settings[:layout] = "admin"
+
+assert_equal "guest", Users.settings[:layout]
+assert_equal "admin", Admin.settings[:layout]
+
+require "cuba"
+require "cuba/render"
+require "erb"
+
+Cuba.plugin Cuba::Render
+
+Cuba.settings[:render][:template_engine] = "haml"
+
+Cuba.define do
+  on "about" do
+    res.write partial("about")
+  end
+  
+  on "home" do
+    res.write view("about")
+  end
+  
+  on "contact" do
+    render("contact")
+  end
+end
+
+Cuba.settings[:render][:template_engine] = "haml"
+Cuba.settings[:render][:views] = "./views/admin/"
+Cuba.settings[:render][:layout] = "admin"
+
+
+module MyOwnHelper
+  def markdown(str)
+    BlueCloth.new(str).to_html
+  end
+end
+
+Cuba.plugin MyOwnHelper
+
+module Render
+  def self.setup(app)
+    app.settings[:template_engine] = "erb"
+  end
+  
+  def partial(template, locals = {})
+    render("#{template}.#{settings[:template_engine]}", locals)
+  end
+end
+
+Cuba.plugin MyOwnHelper
+
+
+module GetServer
+  module ClassMethods
+    def set(key, value)
+      settings[key] = value
+    end
+    
+    def get(key)
+      settings[key]
+    end
+  end
+end
+
+Cuba.plugin GetSetter
+
+Cuba.set(:foo, "bar")
+
+assert_equal "bar", Cuba.get(:foo)
+assert_equal "bar", Cuba.settings[:foo]
 ```
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    {{ app.csrf.meta_tag }}
+  </head>
+  
+  <body>
+    <form action="/foo" method="POST">
+      {{ app.csrf.form_tag }}
+    </form>
+  </body>
+</html>
+```
+
 
 ### CUBA-Platform
 ---
